@@ -11690,19 +11690,9 @@ var $elm$core$List$head = function (list) {
 		return $elm$core$Maybe$Nothing;
 	}
 };
+var $elm$core$String$endsWith = _String_endsWith;
 var $author$project$Main$routeToQuestionType = function (route) {
-	switch (route) {
-		case 'yes-yes':
-			return $elm$core$Maybe$Just(0);
-		case 'yes-no':
-			return $elm$core$Maybe$Just(1);
-		case 'no-yes':
-			return $elm$core$Maybe$Just(2);
-		case 'no-no':
-			return $elm$core$Maybe$Just(3);
-		default:
-			return $elm$core$Maybe$Nothing;
-	}
+	return A2($elm$core$String$endsWith, 'yes-yes', route) ? $elm$core$Maybe$Just(0) : (A2($elm$core$String$endsWith, 'yes-no', route) ? $elm$core$Maybe$Just(1) : (A2($elm$core$String$endsWith, 'no-yes', route) ? $elm$core$Maybe$Just(2) : (A2($elm$core$String$endsWith, 'no-no', route) ? $elm$core$Maybe$Just(3) : $elm$core$Maybe$Nothing)));
 };
 var $author$project$Main$getQuestion = function (model) {
 	return A2(

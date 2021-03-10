@@ -469,21 +469,20 @@ questionSquareColor questionType =
 
 routeToQuestionType : String -> Maybe QuestionType
 routeToQuestionType route =
-    case route of
-        "yes-yes" ->
-            Just YesYes
+    if String.endsWith "yes-yes" route then
+        Just YesYes
 
-        "yes-no" ->
-            Just YesNo
+    else if String.endsWith "yes-no" route then
+        Just YesNo
 
-        "no-yes" ->
-            Just NoYes
+    else if String.endsWith "no-yes" route then
+        Just NoYes
 
-        "no-no" ->
-            Just NoNo
+    else if String.endsWith "no-no" route then
+        Just NoNo
 
-        _ ->
-            Nothing
+    else
+        Nothing
 
 
 questionTypeToRoute : QuestionType -> String
