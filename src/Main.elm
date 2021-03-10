@@ -20,7 +20,6 @@ import Element
         , inFront
         , link
         , maximum
-        , noHover
         , none
         , paddingEach
         , paddingXY
