@@ -20,7 +20,9 @@ import Element
         , inFront
         , link
         , maximum
+        , newTabLink
         , none
+        , padding
         , paddingEach
         , paddingXY
         , rgb255
@@ -253,7 +255,10 @@ view model =
 
 info : Element msg
 info =
-    el [ alignRight, alignBottom ] (text "My Link")
+    newTabLink [ alignRight, alignBottom, Font.color blue, Font.size 32, padding 10 ]
+        { url = "https://github.com/eapyl/descartes-square"
+        , label = text "ℹ"
+        }
 
 
 languageChange : Element.Color -> Element Msg
@@ -610,6 +615,11 @@ green =
 blue : Element.Color
 blue =
     rgb255 59 130 246
+
+
+linkColor : Element.Color
+linkColor =
+    rgb255 96 165 250
 
 
 yellow : Element.Color
