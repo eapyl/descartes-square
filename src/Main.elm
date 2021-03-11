@@ -43,15 +43,6 @@ import Task
 import Url
 
 
-
--- prefix =
---     "/descartes-square/"
-
-
-prefix =
-    "../"
-
-
 main : Program () Model Msg
 main =
     Browser.application
@@ -67,6 +58,7 @@ main =
 type alias Model =
     { key : Nav.Key
     , url : Url.Url
+    , baseUrl : Url.Url
     , questions : List Question
     , uid : Int
     , language : Translation
@@ -101,6 +93,7 @@ type Translation
 init : () -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
 init _ url key =
     ( Model key
+        url
         url
         [ Question YesYes "" []
         , Question YesNo "" []
@@ -282,7 +275,7 @@ mainElement : Model -> Element Msg
 mainElement model =
     case getQuestion model of
         Just question ->
-            questionView model.language question
+            questionView (Url.toString model.baseUrl) model.language question
 
         Nothing ->
             column fillStyle
@@ -385,10 +378,10 @@ getQuestion model =
             )
 
 
-questionView : Translation -> Question -> Element Msg
-questionView language question =
+questionView : String -> Translation -> Question -> Element Msg
+questionView baseUrl language question =
     column [ width fill, height fill, paddingXY 0 10, spacing 20, Background.color (questionColor question.questionType) ]
-        [ el [ width fill, inFront backLink ]
+        [ el [ width fill, inFront (backLink baseUrl) ]
             (el [ centerX ] (getTranslatedText language question.questionType))
         , column [ centerX, width (fill |> maximum 800), spacing 10 ]
             (List.append
@@ -406,14 +399,14 @@ questionView language question =
         ]
 
 
-backLink : Element msg
-backLink =
+backLink : String -> Element msg
+backLink backUrl =
     link
         [ alignLeft
         , paddingXY 5 0
         ]
         { label = el [ centerX, centerY ] (text "🔙")
-        , url = prefix
+        , url = backUrl
         }
 
 

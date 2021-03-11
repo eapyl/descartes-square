@@ -10664,9 +10664,9 @@ var $elm$core$Basics$never = function (_v0) {
 };
 var $elm$browser$Browser$application = _Browser_application;
 var $author$project$Main$En = {$: 'En'};
-var $author$project$Main$Model = F5(
-	function (key, url, questions, uid, language) {
-		return {key: key, language: language, questions: questions, uid: uid, url: url};
+var $author$project$Main$Model = F6(
+	function (key, url, baseUrl, questions, uid, language) {
+		return {baseUrl: baseUrl, key: key, language: language, questions: questions, uid: uid, url: url};
 	});
 var $author$project$Main$NoNo = {$: 'NoNo'};
 var $author$project$Main$NoYes = {$: 'NoYes'};
@@ -10679,9 +10679,10 @@ var $author$project$Main$YesYes = {$: 'YesYes'};
 var $author$project$Main$init = F3(
 	function (_v0, url, key) {
 		return _Utils_Tuple2(
-			A5(
+			A6(
 				$author$project$Main$Model,
 				key,
+				url,
 				url,
 				_List_fromArray(
 					[
@@ -18309,22 +18310,23 @@ var $author$project$Main$answerView = function (answer) {
 };
 var $mdgriffith$elm_ui$Internal$Model$Left = {$: 'Left'};
 var $mdgriffith$elm_ui$Element$alignLeft = $mdgriffith$elm_ui$Internal$Model$AlignX($mdgriffith$elm_ui$Internal$Model$Left);
-var $author$project$Main$prefix = '../';
-var $author$project$Main$backLink = A2(
-	$mdgriffith$elm_ui$Element$link,
-	_List_fromArray(
-		[
-			$mdgriffith$elm_ui$Element$alignLeft,
-			A2($mdgriffith$elm_ui$Element$paddingXY, 5, 0)
-		]),
-	{
-		label: A2(
-			$mdgriffith$elm_ui$Element$el,
-			_List_fromArray(
-				[$mdgriffith$elm_ui$Element$centerX, $mdgriffith$elm_ui$Element$centerY]),
-			$mdgriffith$elm_ui$Element$text('🔙')),
-		url: $author$project$Main$prefix
-	});
+var $author$project$Main$backLink = function (backUrl) {
+	return A2(
+		$mdgriffith$elm_ui$Element$link,
+		_List_fromArray(
+			[
+				$mdgriffith$elm_ui$Element$alignLeft,
+				A2($mdgriffith$elm_ui$Element$paddingXY, 5, 0)
+			]),
+		{
+			label: A2(
+				$mdgriffith$elm_ui$Element$el,
+				_List_fromArray(
+					[$mdgriffith$elm_ui$Element$centerX, $mdgriffith$elm_ui$Element$centerY]),
+				$mdgriffith$elm_ui$Element$text('🔙')),
+			url: backUrl
+		});
+};
 var $mdgriffith$elm_ui$Internal$Model$Focus = {$: 'Focus'};
 var $mdgriffith$elm_ui$Internal$Model$PseudoSelector = F2(
 	function (a, b) {
@@ -18489,8 +18491,8 @@ var $author$project$Main$questionColor = function (questionType) {
 			return A3($mdgriffith$elm_ui$Element$rgb255, 254, 242, 242);
 	}
 };
-var $author$project$Main$questionView = F2(
-	function (language, question) {
+var $author$project$Main$questionView = F3(
+	function (baseUrl, language, question) {
 		return A2(
 			$mdgriffith$elm_ui$Element$column,
 			_List_fromArray(
@@ -18509,7 +18511,8 @@ var $author$project$Main$questionView = F2(
 					_List_fromArray(
 						[
 							$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
-							$mdgriffith$elm_ui$Element$inFront($author$project$Main$backLink)
+							$mdgriffith$elm_ui$Element$inFront(
+							$author$project$Main$backLink(baseUrl))
 						]),
 					A2(
 						$mdgriffith$elm_ui$Element$el,
@@ -18553,7 +18556,11 @@ var $author$project$Main$mainElement = function (model) {
 	var _v0 = $author$project$Main$getQuestion(model);
 	if (_v0.$ === 'Just') {
 		var question = _v0.a;
-		return A2($author$project$Main$questionView, model.language, question);
+		return A3(
+			$author$project$Main$questionView,
+			$elm$url$Url$toString(model.baseUrl),
+			model.language,
+			question);
 	} else {
 		return A2(
 			$mdgriffith$elm_ui$Element$column,
@@ -19202,7 +19209,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "36617" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "36816" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
