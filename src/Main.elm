@@ -404,7 +404,7 @@ backLink =
         , paddingXY 5 0
         ]
         { label = el [ centerX, centerY ] (text "🔙")
-        , url = "/"
+        , url = "./"
         }
 
 
@@ -615,11 +615,6 @@ green =
 blue : Element.Color
 blue =
     rgb255 59 130 246
-
-
-linkColor : Element.Color
-linkColor =
-    rgb255 96 165 250
 
 
 yellow : Element.Color
