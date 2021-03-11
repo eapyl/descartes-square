@@ -43,6 +43,15 @@ import Task
 import Url
 
 
+
+-- prefix =
+--     "/descartes-square/"
+
+
+prefix =
+    "../"
+
+
 main : Program () Model Msg
 main =
     Browser.application
@@ -404,7 +413,7 @@ backLink =
         , paddingXY 5 0
         ]
         { label = el [ centerX, centerY ] (text "🔙")
-        , url = "/"
+        , url = prefix
         }
 
 
