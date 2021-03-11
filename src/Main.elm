@@ -404,7 +404,7 @@ backLink =
         , paddingXY 5 0
         ]
         { label = el [ centerX, centerY ] (text "🔙")
-        , url = "./"
+        , url = "/"
         }
 
 
