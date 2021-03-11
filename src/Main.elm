@@ -265,7 +265,7 @@ info =
 
 languageChange : Element.Color -> Element Msg
 languageChange color =
-    row [ alignRight, spacing 5 ]
+    row [ alignRight, spacing 5, padding 10 ]
         [ button [ Font.color color, Border.width 0 ] { onPress = Just (ChangeLanguage En), label = text "🇬🇧" }
         , button [ Font.color color ] { onPress = Just (ChangeLanguage Ru), label = text "🇷🇺" }
         ]
