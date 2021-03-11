@@ -1,16 +1,11 @@
 {
   "scripts": {
-    "start": "parcel src/index.html",
-    "build": "parcel build src/index.html --public-url ./ --out-dir ./docs"
-  },
-  "targets": {
-    "app": {
-      "distDir": "./docs"
-    }
+    "start": "parcel server ./src/index.html",
+    "build": "parcel build ./src/index.html --public-url ./"
   },
   "devDependencies": {
     "elm-hot": "^1.1.6",
     "node-elm-compiler": "^5.0.5",
-    "parcel": "^2.0.0-beta.1"
+    "parcel": "1.12.3"
   }
 }
