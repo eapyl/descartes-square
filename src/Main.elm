@@ -2,7 +2,6 @@ module Main exposing (Msg(..), main, update)
 
 import Browser
 import Browser.Dom as Dom
-import Browser.Navigation as Nav
 import Element
     exposing
         ( Element
@@ -18,7 +17,6 @@ import Element
         , focused
         , height
         , inFront
-        , link
         , maximum
         , newTabLink
         , none
@@ -40,29 +38,29 @@ import Html.Attributes
 import Html.Events
 import Json.Decode as Decode
 import Task
-import Url
 
 
 main : Program () Model Msg
 main =
-    Browser.application
+    Browser.document
         { init = init
         , view = view
         , update = update
         , subscriptions = subscriptions
-        , onUrlChange = UrlChanged
-        , onUrlRequest = LinkClicked
         }
 
 
 type alias Model =
-    { key : Nav.Key
-    , url : Url.Url
-    , baseUrl : Url.Url
+    { route : Route
     , questions : List Question
     , uid : Int
     , language : Translation
     }
+
+
+type Route
+    = QuestionView QuestionType
+    | Summary
 
 
 type alias Question =
@@ -90,11 +88,10 @@ type Translation
     | Ru
 
 
-init : () -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
-init _ url key =
-    ( Model key
-        url
-        url
+init : () -> ( Model, Cmd Msg )
+init _ =
+    ( Model
+        Summary
         [ Question YesYes "" []
         , Question YesNo "" []
         , Question NoYes "" []
@@ -107,31 +104,17 @@ init _ url key =
 
 
 type Msg
-    = LinkClicked Browser.UrlRequest
-    | UrlChanged Url.Url
-    | ChangeAnswer Int String
+    = ChangeAnswer Int String
     | AddAnswer Question
     | ChangeNewAnswer QuestionType String
     | ChangeLanguage Translation
+    | ChangeView Route
     | NoOp
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        LinkClicked urlRequest ->
-            case urlRequest of
-                Browser.Internal url ->
-                    ( model, Nav.pushUrl model.key (Url.toString url) )
-
-                Browser.External href ->
-                    ( model, Nav.load href )
-
-        UrlChanged url ->
-            ( { model | url = url }
-            , Cmd.none
-            )
-
         ChangeAnswer id newText ->
             ( { model
                 | questions = List.map (updateQuestionAnswer id newText) model.questions
@@ -182,6 +165,11 @@ update msg model =
 
         ChangeLanguage translation ->
             ( { model | language = translation }
+            , Cmd.none
+            )
+
+        ChangeView route ->
+            ( { model | route = route }
             , Cmd.none
             )
 
@@ -238,11 +226,11 @@ view : Model -> Browser.Document Msg
 view model =
     let
         languageColor =
-            case routeToQuestionType (model.url.path |> String.dropLeft 1) of
-                Just _ ->
+            case model.route of
+                QuestionView _ ->
                     black
 
-                _ ->
+                Summary ->
                     white
     in
     { title = "Descartes Square"
@@ -273,11 +261,8 @@ languageChange color =
 
 mainElement : Model -> Element Msg
 mainElement model =
-    case getQuestion model of
-        Just question ->
-            questionView (Url.toString model.baseUrl) model.language question
-
-        Nothing ->
+    let
+        summaryView =
             column fillStyle
                 [ column fillStyle
                     [ row fillStyle
@@ -290,6 +275,18 @@ mainElement model =
                         ]
                     ]
                 ]
+    in
+    case model.route of
+        QuestionView questionType ->
+            case getQuestionByType questionType model.questions of
+                Just selectedQuestion ->
+                    questionView model.language selectedQuestion
+
+                Nothing ->
+                    summaryView
+
+        Summary ->
+            summaryView
 
 
 getQuestionByType : QuestionType -> List Question -> Maybe Question
@@ -297,16 +294,15 @@ getQuestionByType questionType questions =
     questions |> List.filter (\q -> q.questionType == questionType) |> List.head
 
 
-getSquare : Translation -> Maybe { a | questionType : QuestionType, answers : List Answer } -> Element msg
+getSquare : Translation -> Maybe Question -> Element Msg
 getSquare language quesiton =
     case quesiton of
         Just { questionType, answers } ->
             let
-                text =
-                    getTranslatedText language questionType
-
                 linkElement =
-                    questionLink questionType text answers
+                    getTranslatedText language questionType
+                        |> questionViewElement answers
+                        |> wrapQuestionViewIntoButton questionType
             in
             case questionType of
                 YesYes ->
@@ -329,20 +325,20 @@ getSquare language quesiton =
             none
 
 
-questionLink : QuestionType -> Element msg -> List Answer -> Element msg
-questionLink questionType questionText answers =
-    link
+wrapQuestionViewIntoButton : QuestionType -> Element Msg -> Element Msg
+wrapQuestionViewIntoButton questionType questionElement =
+    button
         [ width fill
         , height fill
         , Background.color (questionSquareColor questionType)
         ]
-        { label = showQuestion questionText answers
-        , url = questionTypeToRoute questionType
+        { label = questionElement
+        , onPress = Just (ChangeView (QuestionView questionType))
         }
 
 
-showQuestion : Element msg -> List { a | text : String } -> Element msg
-showQuestion questionText answers =
+questionViewElement : List { a | text : String } -> Element msg -> Element msg
+questionViewElement answers questionText =
     column fillStyle
         [ el [ centerX, styleQuestionTitle (List.isEmpty answers), Font.color white ] questionText
         , column [ paddingXY 20 0, spacing 5 ]
@@ -367,21 +363,10 @@ showAnswer answerText =
     el [ Font.color white ] (text answerText)
 
 
-getQuestion : Model -> Maybe Question
-getQuestion model =
-    model.url.path
-        |> String.dropLeft 1
-        |> routeToQuestionType
-        |> Maybe.andThen
-            (\selectedQuestionType ->
-                model.questions |> List.filter (\q -> q.questionType == selectedQuestionType) |> List.head
-            )
-
-
-questionView : String -> Translation -> Question -> Element Msg
-questionView baseUrl language question =
+questionView : Translation -> Question -> Element Msg
+questionView language question =
     column [ width fill, height fill, paddingXY 0 10, spacing 20, Background.color (questionColor question.questionType) ]
-        [ el [ width fill, inFront (backLink baseUrl) ]
+        [ el [ width fill, inFront backLink ]
             (el [ centerX ] (getTranslatedText language question.questionType))
         , column [ centerX, width (fill |> maximum 800), spacing 10 ]
             (List.append
@@ -399,14 +384,14 @@ questionView baseUrl language question =
         ]
 
 
-backLink : String -> Element msg
-backLink backUrl =
-    link
+backLink : Element Msg
+backLink =
+    button
         [ alignLeft
         , paddingXY 5 0
         ]
         { label = el [ centerX, centerY ] (text "🔙")
-        , url = backUrl
+        , onPress = Just (ChangeView Summary)
         }
 
 
@@ -472,40 +457,6 @@ questionSquareColor questionType =
 
         NoNo ->
             red
-
-
-routeToQuestionType : String -> Maybe QuestionType
-routeToQuestionType route =
-    if String.endsWith "yes-yes" route then
-        Just YesYes
-
-    else if String.endsWith "yes-no" route then
-        Just YesNo
-
-    else if String.endsWith "no-yes" route then
-        Just NoYes
-
-    else if String.endsWith "no-no" route then
-        Just NoNo
-
-    else
-        Nothing
-
-
-questionTypeToRoute : QuestionType -> String
-questionTypeToRoute questionType =
-    case questionType of
-        YesYes ->
-            "yes-yes"
-
-        YesNo ->
-            "yes-no"
-
-        NoYes ->
-            "no-yes"
-
-        NoNo ->
-            "no-no"
 
 
 getTranslatedText : Translation -> QuestionType -> Element msg
