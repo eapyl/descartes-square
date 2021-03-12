@@ -25,9 +25,11 @@ import Element
         , paddingXY
         , rgb255
         , row
+        , shrink
         , spacing
         , text
         , width
+        , wrappedRow
         )
 import Element.Background as Background
 import Element.Border as Border
@@ -224,21 +226,12 @@ subscriptions _ =
 
 view : Model -> Browser.Document Msg
 view model =
-    let
-        languageColor =
-            case model.route of
-                QuestionView _ ->
-                    black
-
-                Summary ->
-                    white
-    in
     { title = "Descartes Square"
     , body =
         [ mainElement model
             |> Element.layoutWith
                 { options = [ focusStyle { borderColor = Nothing, backgroundColor = Nothing, shadow = Nothing } ] }
-                [ inFront info, inFront (languageChange languageColor) ]
+                [ inFront info ]
         ]
     }
 
@@ -251,11 +244,11 @@ info =
         }
 
 
-languageChange : Element.Color -> Element Msg
-languageChange color =
+languageChange : Element Msg
+languageChange =
     row [ alignRight, spacing 5, padding 10 ]
-        [ button [ Font.color color, Border.width 0 ] { onPress = Just (ChangeLanguage En), label = text "🇬🇧" }
-        , button [ Font.color color ] { onPress = Just (ChangeLanguage Ru), label = text "🇷🇺" }
+        [ button [ Font.color white ] { onPress = Just (ChangeLanguage En), label = text "🇬🇧" }
+        , button [ Font.color white ] { onPress = Just (ChangeLanguage Ru), label = text "🇷🇺" }
         ]
 
 
@@ -263,7 +256,7 @@ mainElement : Model -> Element Msg
 mainElement model =
     let
         summaryView =
-            column fillStyle
+            column (inFront languageChange :: fillStyle)
                 [ column fillStyle
                     [ row fillStyle
                         [ model.questions |> getQuestionByType YesNo |> getSquare model.language
@@ -366,8 +359,10 @@ showAnswer answerText =
 questionView : Translation -> Question -> Element Msg
 questionView language question =
     column [ width fill, height fill, paddingXY 0 10, spacing 20, Background.color (questionColor question.questionType) ]
-        [ el [ width fill, inFront backLink ]
-            (el [ centerX ] (getTranslatedText language question.questionType))
+        [ row [ width fill ]
+            [ el [ alignLeft ] backLink
+            , el [ width fill ] (el [ centerX ] (getTranslatedText language question.questionType))
+            ]
         , column [ centerX, width (fill |> maximum 800), spacing 10 ]
             (List.append
                 (question.answers
@@ -389,6 +384,7 @@ backLink =
     button
         [ alignLeft
         , paddingXY 5 0
+        , Font.size fontSizeQuestionText
         ]
         { label = el [ centerX, centerY ] (text "🔙")
         , onPress = Just (ChangeView Summary)
