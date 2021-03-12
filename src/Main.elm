@@ -107,6 +107,7 @@ init _ =
 
 type Msg
     = ChangeAnswer Int String
+    | DeleteAnswer Int
     | AddAnswer Question
     | ChangeNewAnswer QuestionType String
     | ChangeLanguage Translation
@@ -126,6 +127,13 @@ update msg model =
 
               else
                 Cmd.none
+            )
+
+        DeleteAnswer id ->
+            ( { model
+                | questions = List.map (deleteQuestionAnswer id) model.questions
+              }
+            , changeFocusToNewAnswer
             )
 
         AddAnswer question ->
@@ -188,19 +196,23 @@ updateQuestionAnswer : Int -> String -> Question -> Question
 updateQuestionAnswer id newText question =
     { question
         | answers =
-            if String.isEmpty newText then
-                List.filter (\a -> a.id /= id) question.answers
+            List.map
+                (\a ->
+                    if a.id == id then
+                        updateAnswer newText a
 
-            else
-                List.map
-                    (\a ->
-                        if a.id == id then
-                            updateAnswer newText a
+                    else
+                        a
+                )
+                question.answers
+    }
 
-                        else
-                            a
-                    )
-                    question.answers
+
+deleteQuestionAnswer : Int -> Question -> Question
+deleteQuestionAnswer id question =
+    { question
+        | answers =
+            List.filter (\a -> a.id /= id) question.answers
     }
 
 
@@ -368,12 +380,18 @@ questionView language question =
                 (question.answers
                     |> List.map answerView
                 )
-                [ Input.text [ width fill, focused [], idAttr newAnswerIdValue, onEnter (AddAnswer question) ]
-                    { text = question.field
-                    , onChange = ChangeNewAnswer question.questionType
-                    , placeholder = Nothing
-                    , label = labelHidden ""
-                    }
+                [ row [ width fill, spacing 10 ]
+                    [ Input.text [ width fill, focused [], idAttr newAnswerIdValue, onEnter (AddAnswer question) ]
+                        { text = question.field
+                        , onChange = ChangeNewAnswer question.questionType
+                        , placeholder = Nothing
+                        , label = labelHidden ""
+                        }
+                    , button [ Font.size fontSizeQuestionText ]
+                        { onPress = Just (AddAnswer question)
+                        , label = text "✅"
+                        }
+                    ]
                 ]
             )
         ]
@@ -393,12 +411,21 @@ backLink =
 
 answerView : Answer -> Element Msg
 answerView answer =
-    Input.text [ width fill ]
-        { text = answer.text
-        , onChange = ChangeAnswer answer.id
-        , placeholder = Nothing
-        , label = labelHidden ""
-        }
+    row [ width fill, spacing 10 ]
+        [ Input.text [ width fill ]
+            { text = answer.text
+            , onChange =
+                \newText ->
+                    if String.isEmpty newText then
+                        DeleteAnswer answer.id
+
+                    else
+                        ChangeAnswer answer.id newText
+            , placeholder = Nothing
+            , label = labelHidden ""
+            }
+        , button [ Font.size fontSizeQuestionText ] { onPress = Just (DeleteAnswer answer.id), label = text "❌" }
+        ]
 
 
 onEnter : msg -> Element.Attribute msg

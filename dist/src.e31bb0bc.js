@@ -10719,6 +10719,30 @@ var $author$project$Main$changeFocusToNewAnswer = A2(
 		return $author$project$Main$NoOp;
 	},
 	$elm$browser$Browser$Dom$focus($author$project$Main$newAnswerIdValue));
+var $elm$core$List$filter = F2(
+	function (isGood, list) {
+		return A3(
+			$elm$core$List$foldr,
+			F2(
+				function (x, xs) {
+					return isGood(x) ? A2($elm$core$List$cons, x, xs) : xs;
+				}),
+			_List_Nil,
+			list);
+	});
+var $author$project$Main$deleteQuestionAnswer = F2(
+	function (id, question) {
+		return _Utils_update(
+			question,
+			{
+				answers: A2(
+					$elm$core$List$filter,
+					function (a) {
+						return !_Utils_eq(a.id, id);
+					},
+					question.answers)
+			});
+	});
 var $author$project$Main$Answer = F2(
 	function (id, text) {
 		return {id: id, text: text};
@@ -10743,17 +10767,6 @@ var $author$project$Main$updateField = F2(
 			quesiton,
 			{field: txt});
 	});
-var $elm$core$List$filter = F2(
-	function (isGood, list) {
-		return A3(
-			$elm$core$List$foldr,
-			F2(
-				function (x, xs) {
-					return isGood(x) ? A2($elm$core$List$cons, x, xs) : xs;
-				}),
-			_List_Nil,
-			list);
-	});
 var $author$project$Main$updateAnswer = F2(
 	function (newText, answer) {
 		return _Utils_update(
@@ -10765,12 +10778,7 @@ var $author$project$Main$updateQuestionAnswer = F3(
 		return _Utils_update(
 			question,
 			{
-				answers: $elm$core$String$isEmpty(newText) ? A2(
-					$elm$core$List$filter,
-					function (a) {
-						return !_Utils_eq(a.id, id);
-					},
-					question.answers) : A2(
+				answers: A2(
 					$elm$core$List$map,
 					function (a) {
 						return _Utils_eq(a.id, id) ? A2($author$project$Main$updateAnswer, newText, a) : a;
@@ -10794,6 +10802,18 @@ var $author$project$Main$update = F2(
 								model.questions)
 						}),
 					$elm$core$String$isEmpty(newText) ? $author$project$Main$changeFocusToNewAnswer : $elm$core$Platform$Cmd$none);
+			case 'DeleteAnswer':
+				var id = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							questions: A2(
+								$elm$core$List$map,
+								$author$project$Main$deleteQuestionAnswer(id),
+								model.questions)
+						}),
+					$author$project$Main$changeFocusToNewAnswer);
 			case 'AddAnswer':
 				var question = msg.a;
 				return $elm$core$String$isEmpty(question.field) ? _Utils_Tuple2(model, $elm$core$Platform$Cmd$none) : _Utils_Tuple2(
@@ -17337,6 +17357,9 @@ var $author$project$Main$ChangeAnswer = F2(
 	function (a, b) {
 		return {$: 'ChangeAnswer', a: a, b: b};
 	});
+var $author$project$Main$DeleteAnswer = function (a) {
+	return {$: 'DeleteAnswer', a: a};
+};
 var $mdgriffith$elm_ui$Element$Input$HiddenLabel = function (a) {
 	return {$: 'HiddenLabel', a: a};
 };
@@ -18167,17 +18190,40 @@ var $mdgriffith$elm_ui$Element$Input$text = $mdgriffith$elm_ui$Element$Input$tex
 	});
 var $author$project$Main$answerView = function (answer) {
 	return A2(
-		$mdgriffith$elm_ui$Element$Input$text,
+		$mdgriffith$elm_ui$Element$row,
 		_List_fromArray(
 			[
-				$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
+				$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
+				$mdgriffith$elm_ui$Element$spacing(10)
 			]),
-		{
-			label: $mdgriffith$elm_ui$Element$Input$labelHidden(''),
-			onChange: $author$project$Main$ChangeAnswer(answer.id),
-			placeholder: $elm$core$Maybe$Nothing,
-			text: answer.text
-		});
+		_List_fromArray(
+			[
+				A2(
+				$mdgriffith$elm_ui$Element$Input$text,
+				_List_fromArray(
+					[
+						$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
+					]),
+				{
+					label: $mdgriffith$elm_ui$Element$Input$labelHidden(''),
+					onChange: function (newText) {
+						return $elm$core$String$isEmpty(newText) ? $author$project$Main$DeleteAnswer(answer.id) : A2($author$project$Main$ChangeAnswer, answer.id, newText);
+					},
+					placeholder: $elm$core$Maybe$Nothing,
+					text: answer.text
+				}),
+				A2(
+				$mdgriffith$elm_ui$Element$Input$button,
+				_List_fromArray(
+					[
+						$mdgriffith$elm_ui$Element$Font$size($author$project$Main$fontSizeQuestionText)
+					]),
+				{
+					label: $mdgriffith$elm_ui$Element$text('❌'),
+					onPress: $elm$core$Maybe$Just(
+						$author$project$Main$DeleteAnswer(answer.id))
+				})
+			]));
 };
 var $author$project$Main$backLink = A2(
 	$mdgriffith$elm_ui$Element$Input$button,
@@ -18415,21 +18461,42 @@ var $author$project$Main$questionView = F2(
 						_List_fromArray(
 							[
 								A2(
-								$mdgriffith$elm_ui$Element$Input$text,
+								$mdgriffith$elm_ui$Element$row,
 								_List_fromArray(
 									[
 										$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
-										$mdgriffith$elm_ui$Element$focused(_List_Nil),
-										$author$project$Main$idAttr($author$project$Main$newAnswerIdValue),
-										$author$project$Main$onEnter(
-										$author$project$Main$AddAnswer(question))
+										$mdgriffith$elm_ui$Element$spacing(10)
 									]),
-								{
-									label: $mdgriffith$elm_ui$Element$Input$labelHidden(''),
-									onChange: $author$project$Main$ChangeNewAnswer(question.questionType),
-									placeholder: $elm$core$Maybe$Nothing,
-									text: question.field
-								})
+								_List_fromArray(
+									[
+										A2(
+										$mdgriffith$elm_ui$Element$Input$text,
+										_List_fromArray(
+											[
+												$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
+												$mdgriffith$elm_ui$Element$focused(_List_Nil),
+												$author$project$Main$idAttr($author$project$Main$newAnswerIdValue),
+												$author$project$Main$onEnter(
+												$author$project$Main$AddAnswer(question))
+											]),
+										{
+											label: $mdgriffith$elm_ui$Element$Input$labelHidden(''),
+											onChange: $author$project$Main$ChangeNewAnswer(question.questionType),
+											placeholder: $elm$core$Maybe$Nothing,
+											text: question.field
+										}),
+										A2(
+										$mdgriffith$elm_ui$Element$Input$button,
+										_List_fromArray(
+											[
+												$mdgriffith$elm_ui$Element$Font$size($author$project$Main$fontSizeQuestionText)
+											]),
+										{
+											label: $mdgriffith$elm_ui$Element$text('✅'),
+											onPress: $elm$core$Maybe$Just(
+												$author$project$Main$AddAnswer(question))
+										})
+									]))
 							])))
 				]));
 	});
@@ -18516,7 +18583,7 @@ var $author$project$Main$view = function (model) {
 var $author$project$Main$main = $elm$browser$Browser$document(
 	{init: $author$project$Main$init, subscriptions: $author$project$Main$subscriptions, update: $author$project$Main$update, view: $author$project$Main$view});
 _Platform_export({'Main':{'init':$author$project$Main$main(
-	$elm$json$Json$Decode$succeed(_Utils_Tuple0))({"versions":{"elm":"0.19.1"},"types":{"message":"Main.Msg","aliases":{"Main.Answer":{"args":[],"type":"{ id : Basics.Int, text : String.String }"},"Main.Question":{"args":[],"type":"{ questionType : Main.QuestionType, field : String.String, answers : List.List Main.Answer }"}},"unions":{"Main.Msg":{"args":[],"tags":{"ChangeAnswer":["Basics.Int","String.String"],"AddAnswer":["Main.Question"],"ChangeNewAnswer":["Main.QuestionType","String.String"],"ChangeLanguage":["Main.Translation"],"ChangeView":["Main.Route"],"NoOp":[]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"List.List":{"args":["a"],"tags":{}},"Main.QuestionType":{"args":[],"tags":{"YesYes":[],"YesNo":[],"NoYes":[],"NoNo":[]}},"Main.Route":{"args":[],"tags":{"QuestionView":["Main.QuestionType"],"Summary":[]}},"String.String":{"args":[],"tags":{"String":[]}},"Main.Translation":{"args":[],"tags":{"En":[],"Ru":[]}}}}})}});
+	$elm$json$Json$Decode$succeed(_Utils_Tuple0))({"versions":{"elm":"0.19.1"},"types":{"message":"Main.Msg","aliases":{"Main.Answer":{"args":[],"type":"{ id : Basics.Int, text : String.String }"},"Main.Question":{"args":[],"type":"{ questionType : Main.QuestionType, field : String.String, answers : List.List Main.Answer }"}},"unions":{"Main.Msg":{"args":[],"tags":{"ChangeAnswer":["Basics.Int","String.String"],"DeleteAnswer":["Basics.Int"],"AddAnswer":["Main.Question"],"ChangeNewAnswer":["Main.QuestionType","String.String"],"ChangeLanguage":["Main.Translation"],"ChangeView":["Main.Route"],"NoOp":[]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"List.List":{"args":["a"],"tags":{}},"Main.QuestionType":{"args":[],"tags":{"YesYes":[],"YesNo":[],"NoYes":[],"NoNo":[]}},"Main.Route":{"args":[],"tags":{"QuestionView":["Main.QuestionType"],"Summary":[]}},"String.String":{"args":[],"tags":{"String":[]}},"Main.Translation":{"args":[],"tags":{"En":[],"Ru":[]}}}}})}});
 
 //////////////////// HMR BEGIN ////////////////////
 
@@ -19085,7 +19152,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "24655" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "25853" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
