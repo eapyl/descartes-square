@@ -8,6 +8,7 @@ import Element
         , alignBottom
         , alignLeft
         , alignRight
+        , alignTop
         , centerX
         , centerY
         , column
@@ -239,32 +240,16 @@ view model =
         [ mainElement model
             |> Element.layoutWith
                 { options = [ focusStyle { borderColor = Nothing, backgroundColor = Nothing, shadow = Nothing } ] }
-                [ inFront info ]
+                []
         ]
     }
-
-
-info : Element msg
-info =
-    newTabLink [ alignRight, alignBottom, Font.color blue, Font.size 32, padding 10 ]
-        { url = "https://github.com/eapyl/descartes-square"
-        , label = text "ℹ"
-        }
-
-
-languageChange : Element Msg
-languageChange =
-    row [ alignRight, spacing 5, padding 10 ]
-        [ button [ Font.color white ] { onPress = Just (ChangeLanguage En), label = text "🇬🇧" }
-        , button [ Font.color white ] { onPress = Just (ChangeLanguage Ru), label = text "🇷🇺" }
-        ]
 
 
 mainElement : Model -> Element Msg
 mainElement model =
     let
         summaryView =
-            column (inFront languageChange :: fillStyle)
+            row fillStyle
                 [ column fillStyle
                     [ row fillStyle
                         [ model.questions |> getQuestionByType YesNo |> getSquare model.language
@@ -274,6 +259,14 @@ mainElement model =
                         [ model.questions |> getQuestionByType NoNo |> getSquare model.language
                         , model.questions |> getQuestionByType NoYes |> getSquare model.language
                         ]
+                    ]
+                , column [ height fill ]
+                    [ button [ Font.color black, alignTop, centerX, Font.size 24 ] { onPress = Just (ChangeLanguage En), label = text "🇬🇧" }
+                    , button [ Font.color black, alignTop, centerX, Font.size 24 ] { onPress = Just (ChangeLanguage Ru), label = text "🇷🇺" }
+                    , newTabLink [ alignBottom, centerX, Font.color blue, Font.size 32, padding 10 ]
+                        { url = "https://github.com/eapyl/descartes-square"
+                        , label = text "ℹ"
+                        }
                     ]
                 ]
     in
@@ -572,6 +565,11 @@ fillStyle =
 white : Element.Color
 white =
     rgb255 255 255 255
+
+
+black : Element.Color
+black =
+    rgb255 0 0 0
 
 
 green : Element.Color
