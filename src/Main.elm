@@ -25,17 +25,13 @@ import Element
         , paddingXY
         , rgb255
         , row
-        , shrink
         , spacing
         , text
         , width
-        , wrappedRow
         )
 import Element.Background as Background
-import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input exposing (button, labelHidden)
-import Html
 import Html.Attributes
 import Html.Events
 import Json.Decode as Decode
@@ -576,11 +572,6 @@ fillStyle =
 white : Element.Color
 white =
     rgb255 255 255 255
-
-
-black : Element.Color
-black =
-    rgb255 0 0 0
 
 
 green : Element.Color
